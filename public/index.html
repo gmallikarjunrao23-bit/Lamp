@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>KARTHIK×CORE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Martian+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0A0A0C;
+    --panel:#131316;
+    --panel-2:#1B1B20;
+    --line:#232328;
+    --line-soft:#1B1B1F;
+    --text:#EDEDEF;
+    --muted:#8A8A93;
+    --muted-2:#57575F;
+    --signal:#FF5F1F;
+    --signal-soft:rgba(255,95,31,0.14);
+    --ion:#00F0D2;
+    --ion-soft:rgba(0,240,210,0.13);
+    --danger:#FF5470;
+    --radius:12px;
+    --radius-sm:8px;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+  body{
+    background:var(--void); color:var(--text);
+    font-family:'Manrope', sans-serif;
+    min-height:100vh; overflow-x:hidden;
+  }
+  ::selection{ background:var(--signal); color:#0A0A0C; }
+  h1,h2,h3{ font-family:'Unbounded', sans-serif; letter-spacing:-0.01em; }
+  .mono{ font-family:'Martian Mono', monospace; }
+  a{ color:inherit; text-decoration:none; }
+  button{ font-family:inherit; cursor:pointer; border:none; background:none; }
+  input{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--ion); outline-offset:2px; }
+
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ============ TOP BAR ============ */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 5vw;
+    background:rgba(10,10,12,0.7);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .brand{ display:flex; align-items:center; gap:9px; font-family:'Unbounded',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:-0.01em; }
+  .brand-mark{ width:16px; height:16px; position:relative; }
+  .brand-mark::before, .brand-mark::after{ content:""; position:absolute; top:50%; left:50%; width:100%; height:2px; background:var(--signal); }
+  .brand-mark::before{ transform:translate(-50%,-50%) rotate(45deg); }
+  .brand-mark::after{ transform:translate(-50%,-50%) rotate(-45deg); background:var(--ion); }
+  .brand .x{ color:var(--signal); }
+  .nav-desktop{ display:none; gap:32px; font-family:'Martian Mono',monospace; font-size:0.74rem; letter-spacing:0.05em; color:var(--muted); }
+  .nav-desktop a:hover{ color:var(--text); }
+  @media(min-width:820px){ .nav-desktop{ display:flex; } }
+  .menu-btn{ width:38px; height:38px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+  @media(min-width:820px){ .menu-btn{ display:none; } }
+  .menu-btn span{ width:18px; height:1.5px; background:var(--text); transition:transform 0.25s, opacity 0.25s; }
+  .menu-btn.open span:nth-child(1){ transform:translateY(6.5px) rotate(45deg); }
+  .menu-btn.open span:nth-child(2){ opacity:0; }
+  .menu-btn.open span:nth-child(3){ transform:translateY(-6.5px) rotate(-45deg); }
+
+  #mobileMenu{
+    position:fixed; inset:0; z-index:45; background:var(--void);
+    display:flex; flex-direction:column; justify-content:center; padding:8vw;
+    transform:translateY(-100%); transition:transform 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  #mobileMenu.open{ transform:translateY(0); }
+  #mobileMenu a{ font-family:'Unbounded',sans-serif; font-size:2rem; font-weight:600; padding:14px 0; border-bottom:1px solid var(--line); }
+  #mobileMenu .mm-foot{ margin-top:32px; display:flex; gap:20px; font-family:'Martian Mono',monospace; font-size:0.75rem; color:var(--muted); }
+
+  /* ============ GATE ============ */
+  #gate{
+    position:fixed; inset:0; z-index:100; background:var(--void);
+    display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  #gate.hidden{ display:none; }
+  .gate-card{ width:100%; max-width:400px; }
+  .boot-lines{ font-family:'Martian Mono',monospace; font-size:0.8rem; color:var(--ion); line-height:1.9; min-height:100px; }
+  .boot-lines .done{ color:var(--muted-2); }
+  .boot-cursor{ display:inline-block; width:7px; height:14px; background:var(--ion); animation:blink 1s step-end infinite; vertical-align:middle; margin-left:2px; }
+  @keyframes blink{ 50%{ opacity:0; } }
+  .gate-form{ opacity:0; pointer-events:none; transition:opacity 0.5s ease; }
+  .gate-form.show{ opacity:1; pointer-events:auto; }
+  .gate-title{ font-size:2.1rem; font-weight:700; margin-bottom:6px; }
+  .gate-title span{ color:var(--signal); }
+  .gate-sub{ font-family:'Martian Mono',monospace; color:var(--muted); font-size:0.76rem; letter-spacing:0.03em; margin-bottom:30px; line-height:1.6; }
+  .key-input{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:15px 16px; border-radius:var(--radius-sm); font-family:'Martian Mono',monospace;
+    font-size:0.95rem; letter-spacing:0.08em; text-align:center; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .key-input:focus{ outline:none; border-color:var(--signal); box-shadow:0 0 0 3px var(--signal-soft); }
+  .gate-btn{
+    width:100%; margin-top:10px; background:var(--signal); color:#0A0A0C; font-weight:700;
+    padding:15px; border-radius:var(--radius-sm); font-size:0.92rem; transition:transform 0.15s, filter 0.2s;
+  }
+  .gate-btn:hover{ filter:brightness(1.1); transform:translateY(-1px); }
+  .gate-error{ color:var(--danger); font-family:'Martian Mono',monospace; font-size:0.78rem; margin-top:10px; min-height:18px; }
+  .gate-divider{ display:flex; align-items:center; gap:12px; margin:24px 0; color:var(--muted-2); font-family:'Martian Mono',monospace; font-size:0.7rem; }
+  .gate-divider::before, .gate-divider::after{ content:""; flex:1; height:1px; background:var(--line); }
+  .wa-btn{
+    display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+    background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:14px; border-radius:var(--radius-sm); font-size:0.88rem; transition:border-color 0.2s;
+  }
+  .wa-btn:hover{ border-color:var(--ion); }
+  .req-note{ color:var(--muted-2); font-family:'Martian Mono',monospace; font-size:0.68rem; margin-top:16px; line-height:1.6; text-align:center; }
+
+  main{ position:relative; z-index:2; }
+
+  /* ============ HERO ============ */
+  .hero{ position:relative; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 6vw; overflow:hidden; }
+  #coreCanvas{ position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:0.9; }
+  .hero-content{ position:relative; z-index:2; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'Martian Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; color:var(--ion);
+    background:var(--ion-soft); border:1px solid rgba(0,240,210,0.3);
+    padding:7px 14px; border-radius:100px; margin-bottom:28px;
+  }
+  .eyebrow .pip{ width:6px; height:6px; border-radius:50%; background:var(--ion); box-shadow:0 0 8px var(--ion); }
+  .hero h1{ font-size:clamp(2.6rem, 8vw, 5.2rem); font-weight:700; line-height:1.03; }
+  .hero h1 .hl{ color:var(--signal); }
+  .hero p{ max-width:480px; margin:24px auto 0; color:var(--muted); font-size:1.02rem; line-height:1.65; }
+  .hero-actions{ display:flex; gap:14px; justify-content:center; margin-top:40px; flex-wrap:wrap; }
+  .btn-primary, .btn-secondary{ padding:15px 30px; border-radius:var(--radius-sm); font-weight:700; font-size:0.9rem; transition:transform 0.15s, filter 0.2s; }
+  .btn-primary{ background:var(--signal); color:#0A0A0C; }
+  .btn-primary:hover{ transform:translateY(-2px); filter:brightness(1.1); }
+  .btn-secondary{ background:transparent; border:1px solid var(--line); color:var(--text); }
+  .btn-secondary:hover{ border-color:var(--ion); transform:translateY(-2px); }
+  .scroll-cue{ position:absolute; bottom:28px; left:50%; transform:translateX(-50%); font-family:'Martian Mono',monospace; font-size:0.65rem; color:var(--muted-2); letter-spacing:0.1em; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .scroll-cue::after{ content:""; width:1px; height:30px; background:linear-gradient(var(--muted-2), transparent); animation:scrollPulse 2s ease infinite; }
+  @keyframes scrollPulse{ 0%,100%{ opacity:0.3; } 50%{ opacity:1; } }
+
+  section{ padding:11vh 6vw; max-width:1100px; margin:0 auto; position:relative; }
+  .tag{ font-family:'Martian Mono',monospace; color:var(--muted-2); font-size:0.72rem; letter-spacing:0.1em; }
+  .section-head h2{ font-size:clamp(1.8rem,4.2vw,2.6rem); margin-top:10px; }
+  .section-head{ margin-bottom:48px; }
+
+  /* ============ ABOUT / SPEC SHEET ============ */
+  .id-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:20px;
+    padding:32px; display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .avatar{
+    width:76px; height:76px; border-radius:16px; flex-shrink:0;
+    background:linear-gradient(150deg, var(--signal), #B23E10);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Unbounded',sans-serif; font-weight:700; font-size:1.5rem; color:#0A0A0C;
+  }
+  .id-name{ font-size:1.4rem; font-weight:700; font-family:'Unbounded',sans-serif; }
+  .id-role{ font-family:'Martian Mono',monospace; color:var(--ion); font-size:0.78rem; margin-top:5px; letter-spacing:0.04em; }
+  .bio{ color:var(--muted); line-height:1.8; margin-bottom:28px; max-width:600px; font-size:0.98rem; }
+  .spec-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  @media(min-width:640px){ .spec-grid{ grid-template-columns:repeat(4,1fr); } }
+  .spec-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:16px 14px; transition:border-color 0.2s, transform 0.2s;
+  }
+  .spec-card:hover{ border-color:var(--signal); transform:translateY(-2px); }
+  .spec-label{ font-family:'Martian Mono',monospace; font-size:0.62rem; color:var(--muted-2); letter-spacing:0.1em; margin-bottom:6px; }
+  .spec-value{ font-size:0.88rem; word-break:break-word; }
+  .stack-row{ display:flex; gap:8px; margin-top:20px; flex-wrap:wrap; }
+  .stack-pill{ font-family:'Martian Mono',monospace; font-size:0.7rem; color:var(--muted); border:1px solid var(--line); padding:6px 12px; border-radius:100px; }
+
+  /* ============ CONSOLE (terminal) ============ */
+  .terminal{ background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .term-chrome{ display:flex; align-items:center; gap:8px; padding:13px 16px; border-bottom:1px solid var(--line); background:var(--panel-2); }
+  .term-dot{ width:10px; height:10px; border-radius:50%; }
+  .term-title{ margin-left:8px; font-family:'Martian Mono',monospace; font-size:0.72rem; color:var(--muted); }
+  .term-tabs{ display:flex; gap:4px; padding:10px; border-bottom:1px solid var(--line); overflow-x:auto; }
+  .term-tab{ font-family:'Martian Mono',monospace; font-size:0.74rem; color:var(--muted); padding:8px 14px; border-radius:6px; white-space:nowrap; transition:all 0.2s; border-bottom:2px solid transparent; }
+  .term-tab.active{ color:var(--text); background:var(--panel-2); border-bottom-color:var(--ion); }
+  .term-desc{ padding:0 18px 14px; color:var(--muted-2); font-family:'Martian Mono',monospace; font-size:0.72rem; }
+  .term-log{ height:50vh; min-height:320px; max-height:500px; overflow-y:auto; padding:20px 18px; display:flex; flex-direction:column; gap:16px; }
+  .log-line{ display:flex; gap:10px; align-items:flex-start; animation:fadeUp 0.3s ease both; font-size:0.92rem; line-height:1.6; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(8px);} to{ opacity:1; transform:translateY(0);} }
+  .log-prefix{ font-family:'Martian Mono',monospace; font-size:0.82rem; font-weight:600; flex-shrink:0; padding-top:1px; }
+  .log-line.user .log-prefix{ color:var(--signal); }
+  .log-line.bot .log-prefix{ color:var(--ion); }
+  .log-text{ white-space:pre-wrap; word-break:break-word; }
+  .log-line.user .log-text{ color:var(--text); }
+  .log-line.bot .log-text{ color:#D4D4D9; }
+  .typing-line{ display:flex; gap:5px; align-items:center; padding-left:22px; }
+  .typing-line span{ width:5px; height:5px; border-radius:50%; background:var(--ion); animation:tb 1.2s infinite ease-in-out; }
+  .typing-line span:nth-child(2){ animation-delay:0.15s; }
+  .typing-line span:nth-child(3){ animation-delay:0.3s; }
+  @keyframes tb{ 0%,60%,100%{ transform:translateY(0); opacity:0.4;} 30%{ transform:translateY(-4px); opacity:1;} }
+  .empty-log{ margin:auto; text-align:center; color:var(--muted-2); font-family:'Martian Mono',monospace; font-size:0.78rem; }
+  .term-input-row{ display:flex; align-items:center; gap:10px; padding:14px 18px; border-top:1px solid var(--line); }
+  .prompt-glyph{ font-family:'Martian Mono',monospace; color:var(--signal); font-size:1rem; }
+  .term-input-row input{ flex:1; background:transparent; border:none; color:var(--text); font-family:'Martian Mono',monospace; font-size:0.88rem; }
+  .term-input-row input:focus{ outline:none; }
+  .send-btn{ width:36px; height:36px; border-radius:8px; background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--ion); flex-shrink:0; transition:border-color 0.2s; }
+  .send-btn:hover{ border-color:var(--ion); }
+  .clear-thread{ font-family:'Martian Mono',monospace; font-size:0.68rem; color:var(--muted-2); text-align:right; padding:0 18px 12px; cursor:pointer; }
+  .clear-thread:hover{ color:var(--danger); }
+
+  footer{ padding:50px 6vw 70px; text-align:center; border-top:1px solid var(--line-soft); margin-top:40px; }
+  .foot-brand{ font-family:'Martian Mono',monospace; color:var(--muted-2); font-size:0.75rem; }
+  .foot-root{ display:inline-block; margin-top:20px; font-family:'Martian Mono',monospace; font-size:0.68rem; color:var(--muted-2); opacity:0.5; padding:6px 12px; border:1px solid transparent; border-radius:100px; transition:opacity 0.2s, border-color 0.2s, color 0.2s; }
+  .foot-root:hover{ opacity:1; color:var(--signal); border-color:var(--line); }
+
+  /* ============ ADMIN ============ */
+  #adminOverlay{ position:fixed; inset:0; z-index:200; background:rgba(10,10,12,0.94); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
+  #adminOverlay.show{ display:flex; }
+  .admin-login{ width:100%; max-width:320px; text-align:center; }
+  .admin-panel{ width:100%; max-width:780px; max-height:88vh; overflow-y:auto; background:var(--panel); border:1px solid var(--line); border-radius:16px; }
+  .admin-chrome{ display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid var(--line); background:var(--panel-2); }
+  .admin-chrome h3{ font-family:'Martian Mono',monospace; font-size:0.85rem; color:var(--ion); }
+  .close-btn{ background:var(--panel); border:1px solid var(--line); color:var(--muted); width:32px; height:32px; border-radius:8px; font-size:1rem; }
+  .admin-body{ padding:24px; }
+  .admin-section{ margin-bottom:26px; }
+  .admin-section h4{ font-family:'Martian Mono',monospace; font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:12px; }
+  .admin-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:13px 16px; margin-bottom:8px; font-size:0.85rem; }
+  .admin-row .meta{ color:var(--muted-2); font-family:'Martian Mono',monospace; font-size:0.68rem; margin-top:3px; }
+  .pill-btn{ background:var(--ion); color:#0A0A0C; padding:8px 14px; border-radius:100px; font-size:0.74rem; font-weight:700; white-space:nowrap; font-family:'Martian Mono',monospace; }
+  .pill-btn.danger{ background:var(--danger); color:#0A0A0C; }
+  .pill-btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--muted); }
+  .key-generated{ background:var(--ion-soft); border:1px solid var(--ion); color:var(--ion); padding:11px 14px; border-radius:var(--radius-sm); font-family:'Martian Mono',monospace; font-size:0.82rem; margin-top:8px; display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .empty-admin{ color:var(--muted-2); font-family:'Martian Mono',monospace; font-size:0.76rem; padding:12px 0; }
+  .manual-add{ display:flex; gap:8px; margin-top:10px; }
+  .manual-add input{ flex:1; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:11px 14px; border-radius:var(--radius-sm); font-size:0.85rem; font-family:'Martian Mono',monospace; }
+
+  .toast{ position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:12px 20px; border-radius:100px; font-family:'Martian Mono',monospace; font-size:0.78rem; z-index:300; opacity:0; transition:opacity 0.25s, transform 0.25s; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ================= GATE ================= -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="boot-lines" id="bootLines"></div>
+    <div class="gate-form" id="gateForm">
+      <div class="gate-title">KARTHIK<span>×</span>CORE</div>
+      <div class="gate-sub">// PRIVATE BUILD — INVITE ONLY</div>
+      <input type="text" class="key-input" id="keyInput" placeholder="ACCESS KEY" autocomplete="off">
+      <button class="gate-btn" id="unlockBtn">Enter</button>
+      <div class="gate-error" id="gateError"></div>
+      <div class="gate-divider">no key</div>
+      <button class="wa-btn" id="waBtn">Request access on WhatsApp</button>
+      <div class="req-note">requests are logged — the admin will see it and issue a key</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= NAV ================= -->
+<header>
+  <div class="brand"><span class="brand-mark"></span>KARTHIK<span class="x">×</span>CORE</div>
+  <nav class="nav-desktop">
+    <a href="#about">[PROFILE]</a>
+    <a href="#console">[CONSOLE]</a>
+  </nav>
+  <button class="menu-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+</header>
+
+<div id="mobileMenu">
+  <a href="#about" class="mm-link">Profile</a>
+  <a href="#console" class="mm-link">Console</a>
+  <div class="mm-foot">
+    <a href="mailto:gkartheeksai@gmail.com">Email</a>
+    <a href="https://github.com/gmallikarjunrao23-bit" target="_blank">GitHub</a>
+    <a href="https://x.com/charantrends" target="_blank">X</a>
+  </div>
+</div>
+
+<!-- ================= SITE ================= -->
+<main id="site" style="display:none;">
+
+  <section class="hero">
+    <canvas id="coreCanvas"></canvas>
+    <div class="hero-content">
+      <div class="eyebrow"><span class="pip"></span>SYSTEM ONLINE</div>
+      <h1 class="reveal">Building software<br>with a <span class="hl">core</span> obsession.</h1>
+      <p class="reveal">The private space of G Karthik — SaaS builder — and the live console that runs alongside everything he ships.</p>
+      <div class="hero-actions reveal">
+        <a href="#console" class="btn-primary">Open Console</a>
+        <a href="#about" class="btn-secondary">View Profile</a>
+      </div>
+    </div>
+    <div class="scroll-cue">SCROLL</div>
+  </section>
+
+  <section id="about">
+    <div class="section-head reveal">
+      <div class="tag">[PROFILE]</div>
+      <h2>Who's running this.</h2>
+    </div>
+    <div class="reveal">
+      <div class="id-card">
+        <div class="avatar">GK</div>
+        <div>
+          <div class="id-name">G Karthik</div>
+          <div class="id-role">SAAS BUILDER</div>
+        </div>
+      </div>
+      <p class="bio">G Karthik is a self-taught software developer whose fascination with code began at just ten years old. What started as childhood curiosity has grown into a disciplined craft — designing and shipping full-stack SaaS products end-to-end, from database architecture to pixel-perfect interfaces. He blends technical precision with an entrepreneurial drive, turning ambitious ideas into real, working software.</p>
+      <div class="spec-grid">
+        <div class="spec-card"><div class="spec-label">EMAIL</div><a class="spec-value" href="mailto:gkartheeksai@gmail.com">gkartheeksai@gmail.com</a></div>
+        <div class="spec-card"><div class="spec-label">WHATSAPP</div><a class="spec-value" href="https://wa.me/919390953853" target="_blank">+91 93909 53853</a></div>
+        <div class="spec-card"><div class="spec-label">GITHUB</div><a class="spec-value" href="https://github.com/gmallikarjunrao23-bit" target="_blank">gmallikarjunrao23-bit</a></div>
+        <div class="spec-card"><div class="spec-label">X / TWITTER</div><a class="spec-value" href="https://x.com/charantrends" target="_blank">@charantrends</a></div>
+      </div>
+      <div class="stack-row">
+        <span class="stack-pill">Next.js</span>
+        <span class="stack-pill">PostgreSQL</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="console">
+    <div class="section-head reveal">
+      <div class="tag">[CONSOLE]</div>
+      <h2>Talk to CORE.</h2>
+    </div>
+    <div class="terminal reveal">
+      <div class="term-chrome">
+        <span class="term-dot" style="background:#FF5F56;"></span>
+        <span class="term-dot" style="background:#FFBD2E;"></span>
+        <span class="term-dot" style="background:#27C93F;"></span>
+        <span class="term-title">core@karthik — console</span>
+      </div>
+      <div class="term-tabs" id="modeTabs"></div>
+      <div class="term-desc" id="modeDesc"></div>
+      <div class="term-log" id="chatWindow"><div class="empty-log">// nothing here yet — say something</div></div>
+      <div class="clear-thread" id="clearThread">clear thread</div>
+      <div class="term-input-row">
+        <span class="prompt-glyph">❯</span>
+        <input type="text" id="chatInput" placeholder="type a message…" autocomplete="off">
+        <button class="send-btn" id="sendBtn">↵</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="foot-brand">KARTHIK×CORE — private build, all rights reserved.</div>
+    <a href="#" class="foot-root mono" id="adminDot">[root]</a>
+  </footer>
+</main>
+
+<!-- ================= ADMIN ================= -->
+<div id="adminOverlay">
+  <div class="admin-login" id="adminLogin">
+    <div class="gate-title" style="font-size:1.3rem;">root access</div>
+    <div class="gate-sub">// AUTHENTICATION REQUIRED</div>
+    <input type="password" class="key-input" id="adminPass" placeholder="PASSWORD">
+    <button class="gate-btn" id="adminLoginBtn">Enter</button>
+    <div class="gate-error" id="adminError"></div>
+    <button class="pill-btn ghost" id="adminCancel" style="margin-top:14px; width:100%; padding:12px;">Cancel</button>
+  </div>
+  <div class="admin-panel" id="adminPanel" style="display:none;">
+    <div class="admin-chrome">
+      <h3>root@karthik-core</h3>
+      <button class="close-btn" id="adminClose">✕</button>
+    </div>
+    <div class="admin-body">
+      <div class="admin-section">
+        <h4>Pending Requests</h4>
+        <div id="pendingList"></div>
+      </div>
+      <div class="admin-section">
+        <h4>Issued Keys</h4>
+        <div id="keysList"></div>
+      </div>
+      <div class="admin-section">
+        <h4>Manually Issue a Key</h4>
+        <div class="manual-add">
+          <input type="text" id="manualName" placeholder="issued to (name/label)">
+          <button class="pill-btn" id="manualIssueBtn" style="padding:11px 18px;">Generate</button>
+        </div>
+        <div id="manualResult"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   KARTHIK×CORE v2 — terminal-console redesign
+   ============================================================ */
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const MODES = {
+  pulse: { label:"PULSE", desc:"High-energy hype mode — fast, motivational, straight-up slangy Tenglish." },
+  nova:  { label:"NOVA",  desc:"Creative, expressive mode — imaginative answers with a storyteller's touch." },
+  apex:  { label:"APEX",  desc:"Precise, technical mode — sharp, structured, no fluff." },
+  echo:  { label:"ECHO",  desc:"Warm, balanced companion mode — chill, friendly, easygoing." }
+};
+
+let currentMode = "pulse";
+let sessionId = localStorage.getItem('core_session') || (Date.now()+'-'+Math.random().toString(36).slice(2,9));
+localStorage.setItem('core_session', sessionId);
+let adminPassCache = null;
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============ NAV / MOBILE MENU ============ */
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
+menuBtn.addEventListener('click', () => {
+  menuBtn.classList.toggle('open');
+  mobileMenu.classList.toggle('open');
+});
+document.querySelectorAll('#mobileMenu .mm-link').forEach(a => {
+  a.addEventListener('click', () => { menuBtn.classList.remove('open'); mobileMenu.classList.remove('open'); });
+});
+
+/* ============ SCROLL REVEAL ============ */
+function initReveal(){
+  const els = document.querySelectorAll('.reveal');
+  if(reduceMotion){ els.forEach(e => e.classList.add('in')); return; }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.15 });
+  els.forEach(e => io.observe(e));
+}
+
+/* ============ HERO CANVAS — reactor core ============ */
+function initCoreCanvas(){
+  const canvas = document.getElementById('coreCanvas');
+  const ctx = canvas.getContext('2d');
+  let w, h, dpr;
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.clientWidth; h = canvas.clientHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const particles = [];
+  const count = window.innerWidth < 640 ? 14 : 24;
+  for(let i=0;i<count;i++){
+    particles.push({
+      angle: Math.random()*Math.PI*2,
+      radius: 60 + Math.random()*160,
+      speed: (0.1 + Math.random()*0.25) * (Math.random()<0.5?-1:1),
+      size: 1 + Math.random()*2,
+      hue: Math.random() < 0.5 ? 'signal' : 'ion'
+    });
+  }
+
+  let t = 0;
+  let running = true;
+  document.addEventListener('visibilitychange', () => { running = !document.hidden; if(running) requestAnimationFrame(loop); });
+
+  function loop(){
+    if(!running) return;
+    t += reduceMotion ? 0.006 : 0.016;
+    ctx.clearRect(0,0,w,h);
+    const cx = w/2, cy = h*0.46;
+
+    // pulsing rings
+    for(let i=0;i<3;i++){
+      const phase = (t*0.5 + i/3) % 1;
+      const r = phase * Math.min(w,h) * 0.42;
+      const alpha = (1-phase) * 0.35;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.strokeStyle = i % 2 === 0 ? `rgba(255,95,31,${alpha})` : `rgba(0,240,210,${alpha})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // core glow
+    const coreR = 30 + Math.sin(t*1.5)*4;
+    const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,coreR*3);
+    grad.addColorStop(0, 'rgba(255,143,84,0.9)');
+    grad.addColorStop(0.4, 'rgba(255,95,31,0.35)');
+    grad.addColorStop(1, 'rgba(255,95,31,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(cx,cy,coreR*3,0,Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = '#FFE8DC';
+    ctx.beginPath(); ctx.arc(cx,cy,coreR*0.35,0,Math.PI*2); ctx.fill();
+
+    // orbiting particles
+    particles.forEach(p => {
+      if(!reduceMotion) p.angle += p.speed * 0.01;
+      const x = cx + Math.cos(p.angle) * p.radius;
+      const y = cy + Math.sin(p.angle) * p.radius * 0.55;
+      ctx.beginPath();
+      ctx.arc(x,y,p.size,0,Math.PI*2);
+      ctx.fillStyle = p.hue === 'signal' ? 'rgba(255,143,84,0.8)' : 'rgba(0,240,210,0.8)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+/* ============ GATE / BOOT SEQUENCE ============ */
+const bootLinesEl = document.getElementById('bootLines');
+const gateFormEl = document.getElementById('gateForm');
+const BOOT_TEXT = [
+  '> initializing core...',
+  '> checking credentials...',
+  '> access key required_'
+];
+
+function runBoot(){
+  if(reduceMotion){
+    bootLinesEl.style.display = 'none';
+    gateFormEl.classList.add('show');
+    return;
+  }
+  let lineIdx = 0, charIdx = 0;
+  let html = '';
+  function typeNext(){
+    if(lineIdx >= BOOT_TEXT.length){
+      bootLinesEl.innerHTML = html.replace('_','') + '<span class="boot-cursor"></span>';
+      setTimeout(() => {
+        bootLinesEl.style.display = 'none';
+        gateFormEl.classList.add('show');
+      }, 450);
+      return;
+    }
+    const line = BOOT_TEXT[lineIdx];
+    if(charIdx <= line.length){
+      bootLinesEl.innerHTML = html + '<div>' + escapeHtml(line.slice(0,charIdx)) + '<span class="boot-cursor"></span></div>';
+      charIdx++;
+      setTimeout(typeNext, 18);
+    } else {
+      html += '<div class="done">' + escapeHtml(line) + '</div>';
+      lineIdx++; charIdx = 0;
+      setTimeout(typeNext, 120);
+    }
+  }
+  typeNext();
+}
+bootLinesEl.addEventListener('click', () => {
+  bootLinesEl.style.display = 'none';
+  gateFormEl.classList.add('show');
+});
+
+/* ============ GATE LOGIC ============ */
+document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
+document.getElementById('keyInput').addEventListener('keydown', e => { if(e.key==='Enter') tryUnlock(); });
+
+async function tryUnlock(){
+  const input = document.getElementById('keyInput');
+  const err = document.getElementById('gateError');
+  const val = input.value.trim().toUpperCase();
+  if(!val){ err.textContent = "enter a key first."; return; }
+  err.textContent = "checking…";
+  try{
+    const res = await fetch('/api/verify-key', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:val}) });
+    const data = await res.json();
+    if(data.valid){
+      localStorage.setItem('core_key', val);
+      enterSite();
+    } else {
+      err.textContent = "invalid or inactive key.";
+    }
+  }catch(e){ err.textContent = "connection error, try again."; }
+}
+
+document.getElementById('waBtn').addEventListener('click', async () => {
+  const name = prompt("Your name (so the admin knows who's asking):", "");
+  try{
+    await fetch('/api/request-access', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name, session:sessionId}) });
+  }catch(e){}
+  const msg = encodeURIComponent(`Hi Karthik, I'd like access to KARTHIK×CORE. My name: ${name||'—'}`);
+  window.open(`https://wa.me/919390953853?text=${msg}`, '_blank');
+  toast("request logged — admin will see it.");
+});
+
+function enterSite(){
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('site').style.display = 'block';
+  initConsole();
+  initCoreCanvas();
+  initReveal();
+}
+
+async function checkExistingSession(){
+  const saved = localStorage.getItem('core_key');
+  if(saved){
+    try{
+      const res = await fetch('/api/verify-key', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({key:saved}) });
+      const data = await res.json();
+      if(data.valid){ enterSite(); return; }
+    }catch(e){}
+  }
+  runBoot();
+  if(location.hash === '#admin'){ openAdmin(); }
+}
+
+/* ============ CONSOLE / CHAT ============ */
+function initConsole(){
+  const tabs = document.getElementById('modeTabs');
+  tabs.innerHTML = '';
+  Object.keys(MODES).forEach(key => {
+    const m = MODES[key];
+    const btn = document.createElement('button');
+    btn.className = 'term-tab mono' + (key===currentMode ? ' active' : '');
+    btn.textContent = m.label;
+    btn.addEventListener('click', () => switchMode(key));
+    tabs.appendChild(btn);
+  });
+  document.getElementById('modeDesc').textContent = '// ' + MODES[currentMode].desc;
+  loadThread(currentMode);
+}
+
+async function switchMode(key){ currentMode = key; initConsole(); }
+
+async function loadThread(mode){
+  const win = document.getElementById('chatWindow');
+  win.innerHTML = '<div class="empty-log">// loading…</div>';
+  try{
+    const res = await fetch(`/api/chat?mode=${mode}&session=${sessionId}`);
+    const data = await res.json();
+    renderThread(data.history || []);
+  }catch(e){ renderThread([]); }
+}
+
+function renderThread(thread){
+  const win = document.getElementById('chatWindow');
+  if(!thread || thread.length === 0){
+    win.innerHTML = `<div class="empty-log">// nothing here yet — say something to ${MODES[currentMode].label}</div>`;
+    return;
+  }
+  win.innerHTML = '';
+  thread.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'log-line ' + (m.role==='user' ? 'user' : 'bot');
+    div.innerHTML = `<span class="log-prefix mono">${m.role==='user'?'❯':'CORE ▸'}</span><span class="log-text"></span>`;
+    div.querySelector('.log-text').textContent = m.text;
+    win.appendChild(div);
+  });
+  win.scrollTop = win.scrollHeight;
+}
+
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+document.getElementById('chatInput').addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
+document.getElementById('clearThread').addEventListener('click', async () => {
+  renderThread([]);
+  toast("thread cleared (view).");
+});
+
+async function sendMessage(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+
+  const win = document.getElementById('chatWindow');
+  if(win.querySelector('.empty-log')) win.innerHTML = '';
+  const userDiv = document.createElement('div');
+  userDiv.className = 'log-line user';
+  userDiv.innerHTML = `<span class="log-prefix mono">❯</span><span class="log-text"></span>`;
+  userDiv.querySelector('.log-text').textContent = text;
+  win.appendChild(userDiv);
+
+  const typing = document.createElement('div');
+  typing.className = 'typing-line';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  win.appendChild(typing);
+  win.scrollTop = win.scrollHeight;
+
+  try{
+    const res = await fetch('/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ mode: currentMode, session: sessionId, message: text })
+    });
+    const data = await res.json();
+    typing.remove();
+    renderThread(data.history || []);
+  }catch(e){
+    typing.remove();
+    const botDiv = document.createElement('div');
+    botDiv.className = 'log-line bot';
+    botDiv.innerHTML = `<span class="log-prefix mono">CORE ▸</span><span class="log-text">signal dropped — check connection and try again.</span>`;
+    win.appendChild(botDiv);
+  }
+}
+
+/* ============ ADMIN PANEL ============ */
+document.getElementById('adminDot').addEventListener('click', (e) => { e.preventDefault(); openAdmin(); });
+document.getElementById('adminCancel').addEventListener('click', closeAdmin);
+document.getElementById('adminClose').addEventListener('click', closeAdmin);
+document.getElementById('adminLoginBtn').addEventListener('click', tryAdminLogin);
+document.getElementById('adminPass').addEventListener('keydown', e => { if(e.key==='Enter') tryAdminLogin(); });
+document.getElementById('manualIssueBtn').addEventListener('click', manualIssue);
+
+function openAdmin(){
+  document.getElementById('adminOverlay').classList.add('show');
+  if(adminPassCache){ showAdminPanel(); }
+}
+function closeAdmin(){ document.getElementById('adminOverlay').classList.remove('show'); }
+
+async function tryAdminLogin(){
+  const val = document.getElementById('adminPass').value;
+  const err = document.getElementById('adminError');
+  try{
+    const res = await fetch('/api/admin-login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:val}) });
+    const data = await res.json();
+    if(data.ok){ adminPassCache = val; showAdminPanel(); }
+    else { err.textContent = "wrong password."; }
+  }catch(e){ err.textContent = "connection error."; }
+}
+
+function showAdminPanel(){
+  document.getElementById('adminLogin').style.display = 'none';
+  document.getElementById('adminPanel').style.display = 'block';
+  refreshAdmin();
+}
+
+async function refreshAdmin(){
+  const pendingWrap = document.getElementById('pendingList');
+  const keysWrap = document.getElementById('keysList');
+  pendingWrap.innerHTML = '<div class="empty-admin">loading…</div>';
+  keysWrap.innerHTML = '<div class="empty-admin">loading…</div>';
+
+  const res = await fetch('/api/admin-data', { headers:{'x-admin-pass':adminPassCache} });
+  const data = await res.json();
+  const pending = data.pending || [];
+  const keys = data.keys || [];
+
+  if(pending.length === 0){
+    pendingWrap.innerHTML = '<div class="empty-admin">no pending requests.</div>';
+  } else {
+    pendingWrap.innerHTML = '';
+    pending.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div><div>${escapeHtml(p.name)}</div><div class="meta">${new Date(p.timestamp).toLocaleString()}</div></div>
+        <button class="pill-btn" data-req="${p.id}" data-name="${escapeHtml(p.name)}">Issue Key</button>`;
+      pendingWrap.appendChild(row);
+    });
+    pendingWrap.querySelectorAll('button[data-req]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const reqId = btn.getAttribute('data-req');
+        const name = btn.getAttribute('data-name');
+        const r = await fetch('/api/admin-issue-key', { method:'POST', headers:{'Content-Type':'application/json','x-admin-pass':adminPassCache}, body:JSON.stringify({name, requestId:reqId}) });
+        const d = await r.json();
+        toast(`key issued: ${d.key}`);
+        refreshAdmin();
+      });
+    });
+  }
+
+  if(keys.length === 0){
+    keysWrap.innerHTML = '<div class="empty-admin">no keys issued yet.</div>';
+  } else {
+    keysWrap.innerHTML = '';
+    keys.forEach(k => {
+      const row = document.createElement('div');
+      row.className = 'admin-row';
+      row.innerHTML = `<div><div class="mono">${k.id} ${k.active ? '' : '<span style="color:var(--danger)">(revoked)</span>'}</div>
+        <div class="meta">${escapeHtml(k.issuedTo)} · ${new Date(k.issuedAt).toLocaleDateString()}</div></div>
+        <button class="pill-btn ${k.active?'danger':'ghost'}" data-toggle="${k.id}" data-state="${k.active}">${k.active?'Revoke':'Revoked'}</button>`;
+      keysWrap.appendChild(row);
+    });
+    keysWrap.querySelectorAll('button[data-toggle]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(btn.getAttribute('data-state') === 'false') return;
+        const id = btn.getAttribute('data-toggle');
+        await fetch('/api/admin-revoke-key', { method:'POST', headers:{'Content-Type':'application/json','x-admin-pass':adminPassCache}, body:JSON.stringify({key:id}) });
+        toast(`${id} revoked`);
+        refreshAdmin();
+      });
+    });
+  }
+}
+
+async function manualIssue(){
+  const nameInput = document.getElementById('manualName');
+  const name = nameInput.value.trim() || 'Manual grant';
+  const r = await fetch('/api/admin-issue-key', { method:'POST', headers:{'Content-Type':'application/json','x-admin-pass':adminPassCache}, body:JSON.stringify({name}) });
+  const d = await r.json();
+  document.getElementById('manualResult').innerHTML = `
+    <div class="key-generated"><span>${d.key}</span>
+      <button class="pill-btn ghost" onclick="navigator.clipboard.writeText('${d.key}'); toast('copied!')">Copy</button>
+    </div>`;
+  nameInput.value = '';
+  refreshAdmin();
+}
+
+checkExistingSession();
+</script>
+</body>
+</html>
+
